@@ -142,8 +142,25 @@ function parseRows(rows) {
 }
 
 function renderFilters(items) {
-  const tipos = [...new Set(items.map(r => r.tipo))].sort();
-  const deptos = [...new Set(items.map(r => r.depto))].sort();
+  const tiposSet = new Map();
+  const deptosSet = new Map();
+
+  items.forEach(r => {
+    const tipoKey = r.tipo.trim();
+    const deptoKey = r.depto.trim();
+
+    if (!tiposSet.has(tipoKey.toLowerCase())) {
+      tiposSet.set(tipoKey.toLowerCase(), tipoKey);
+    }
+
+    if (!deptosSet.has(deptoKey.toLowerCase())) {
+      deptosSet.set(deptoKey.toLowerCase(), deptoKey);
+    }
+  });
+
+  const tipos = Array.from(tiposSet.values()).sort((a, b) => a.localeCompare(b));
+  const deptos = Array.from(deptosSet.values()).sort((a, b) => a.localeCompare(b));
+
   document.getElementById('filterTipo').innerHTML = `<option value="">Todos</option>` + tipos.map(t => `<option>${t}</option>`).join('');
   document.getElementById('filterDepto').innerHTML = `<option value="">Todos</option>` + deptos.map(d => `<option>${d}</option>`).join('');
 }
