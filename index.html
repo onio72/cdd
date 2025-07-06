@@ -142,24 +142,26 @@ function parseRows(rows) {
 }
 
 function renderFilters(items) {
-  const tiposSet = new Map();
-  const deptosSet = new Map();
+  const tipoSet = new Map();
+  const deptoSet = new Map();
 
   items.forEach(r => {
-    const tipoKey = r.tipo.trim();
-    const deptoKey = r.depto.trim();
-
-    if (!tiposSet.has(tipoKey.toLowerCase())) {
-      tiposSet.set(tipoKey.toLowerCase(), tipoKey);
-    }
-
-    if (!deptosSet.has(deptoKey.toLowerCase())) {
-      deptosSet.set(deptoKey.toLowerCase(), deptoKey);
-    }
+    r.tipo.split(',').forEach(t => {
+      const key = t.trim();
+      if (key && !tipoSet.has(key.toLowerCase())) {
+        tipoSet.set(key.toLowerCase(), key);
+      }
+    });
+    r.depto.split(',').forEach(d => {
+      const key = d.trim();
+      if (key && !deptoSet.has(key.toLowerCase())) {
+        deptoSet.set(key.toLowerCase(), key);
+      }
+    });
   });
 
-  const tipos = Array.from(tiposSet.values()).sort((a, b) => a.localeCompare(b));
-  const deptos = Array.from(deptosSet.values()).sort((a, b) => a.localeCompare(b));
+  const tipos = Array.from(tipoSet.values()).sort((a, b) => a.localeCompare(b));
+  const deptos = Array.from(deptoSet.values()).sort((a, b) => a.localeCompare(b));
 
   document.getElementById('filterTipo').innerHTML = `<option value="">Todos</option>` + tipos.map(t => `<option>${t}</option>`).join('');
   document.getElementById('filterDepto').innerHTML = `<option value="">Todos</option>` + deptos.map(d => `<option>${d}</option>`).join('');
@@ -185,14 +187,24 @@ function renderCards(items) {
 }
 
 function applyFilters(data) {
-  const t = document.getElementById('filterTipo').value;
-  const d = document.getElementById('filterDepto').value;
-  const s = document.getElementById('filterSearch').value.toLowerCase().trim();
+  const selectedTipo = document.getElementById('filterTipo').value;
+  const selectedDepto = document.getElementById('filterDepto').value;
+  const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+
   return data.filter(r => {
-    if (t && r.tipo !== t) return false;
-    if (d && r.depto !== d) return false;
-    if (!s) return true;
-    return r.pill.toString().includes(s) || r.tipo.toLowerCase().includes(s) || r.depto.toLowerCase().includes(s) || r.info?.toLowerCase().includes(s);
+    const tipos = r.tipo.split(',').map(t => t.trim());
+    const deptos = r.depto.split(',').map(d => d.trim());
+
+    const matchesTipo = !selectedTipo || tipos.includes(selectedTipo);
+    const matchesDepto = !selectedDepto || deptos.includes(selectedDepto);
+    const matchesSearch =
+      !search ||
+      r.pill.toString().includes(search) ||
+      r.tipo.toLowerCase().includes(search) ||
+      r.depto.toLowerCase().includes(search) ||
+      r.info?.toLowerCase().includes(search);
+
+    return matchesTipo && matchesDepto && matchesSearch;
   });
 }
 
@@ -230,7 +242,7 @@ function applyFilters(data) {
       const section = document.getElementById('omittedSection');
       const list = document.getElementById('omittedList');
       section.classList.remove('hidden');
-      omitidos.forEach(msg => {
+      omitted.forEach(msg => {
         const li = document.createElement('li');
         li.textContent = msg;
         list.appendChild(li);
