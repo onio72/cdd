@@ -44,13 +44,39 @@
 <script>
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQKf_w77is2BLppKdtdxb81nWMDF5saLmicERcfyZYhLP3gJVAhXAQZnwdR2n4Cl2zn_eWb8XmqfV1y/pub?gid=0&single=true&output=csv';
 
+// Función para parsear CSV robustamente
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split('\n');
+  for (const line of lines) {
+    const cells = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"' && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        cells.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    cells.push(current.trim());
+    rows.push(cells);
+  }
+  return rows;
+}
+
 async function fetchData() {
   const response = await fetch(CSV_URL);
   const csvText = await response.text();
-  const rows = csvText.trim().split('\n').map(row =>
-    row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '').replace(/""/g, '"'))
-  );
-  return rows;
+  return parseCSV(csvText);
 }
 
 function parseRows(rows) {
@@ -69,18 +95,30 @@ function parseRows(rows) {
 
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
+    if (!r.length || r.every(c => c.trim() === '')) continue;
+
     const pill = parseInt(r[idx.pill]);
-    const tipo = r[idx.tipo];
-    const depto = r[idx.depto];
-    const url = r[idx.url];
-    const fechaRaw = r[idx.fecha];
+    const tipo = r[idx.tipo]?.trim();
+    const depto = r[idx.depto]?.trim();
+    const url = r[idx.url]?.trim().replace(/^"|"$/g, '');
+    const fechaRaw = r[idx.fecha]?.trim();
+
     const errores = [];
 
     if (isNaN(pill)) errores.push('Píldora inválida');
     if (!tipo) errores.push('Tipo vacío');
     if (!depto) errores.push('Departamento vacío');
-    if (!/^https?:\/\/\S+/.test(url)) errores.push('URL inválida');
-    const fecha = new Date(fechaRaw);
+    if (!/^https?:\/\/\S+/i.test(url)) errores.push('URL inválida');
+
+    // Convertir dd/mm/yyyy a yyyy-mm-dd para que lo entienda JS
+    let fecha = null;
+    if (fechaRaw && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(fechaRaw)) {
+      const [d, m, y] = fechaRaw.split('/');
+      fecha = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
+    } else {
+      fecha = new Date(fechaRaw);
+    }
+
     if (!(fecha instanceof Date) || isNaN(fecha)) errores.push('Fecha inválida');
 
     if (errores.length > 0) {
@@ -187,5 +225,6 @@ function applyFilters(data) {
   }
 })();
 </script>
+
 </body>
 </html>
