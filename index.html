@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Repositorio de Píldoras CDD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4 font-inter">
+  <div class="container mx-auto bg-white p-6 rounded-lg shadow-lg">
+    <header class="text-center mb-6">
+      <h1 class="text-4xl font-extrabold text-gray-900">Repositorio de Píldoras CDD</h1>
+      <h2 class="text-xl text-gray-600">Colección de recursos educativos para el claustro del IES El Majuelo</h2>
+    </header>
+
+    <div class="flex flex-wrap gap-4 mb-6 justify-center">
+      <div class="w-full sm:w-1/3">
+        <label class="block text-sm font-medium text-gray-700">Tipo de recurso</label>
+        <select id="filterTipo" class="mt-1 block w-full rounded-md border-gray-300"></select>
+      </div>
+      <div class="w-full sm:w-1/3">
+        <label class="block text-sm font-medium text-gray-700">Departamento</label>
+        <select id="filterDepto" class="mt-1 block w-full rounded-md border-gray-300"></select>
+      </div>
+      <div class="w-full sm:w-1/3">
+        <label class="block text-sm font-medium text-gray-700">Buscar Nº o palabra clave</label>
+        <input id="filterSearch" type="text" class="mt-1 block w-full rounded-md border-gray-300" placeholder="Ej: 15, IA, Moodle">
+      </div>
+      <div class="flex items-end">
+        <button id="btnClear" class="bg-red-500 text-white px-4 py-2 rounded-md">Limpiar filtros</button>
+      </div>
+    </div>
+
+    <div id="spinner" class="flex justify-center my-8"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div></div>
+    <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    <p id="noResults" class="text-center text-gray-500 hidden">No se encontraron recursos.</p>
+
+    <div id="omittedSection" class="mt-8 hidden">
+      <h3 class="text-xl font-bold text-red-600">Registros omitidos:</h3>
+      <ul id="omittedList" class="list-disc list-inside text-red-700"></ul>
+    </div>
+  </div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQKf_w77is2BLppKdtdxb81nWMDF5saLmicERcfyZYhLP3gJVAhXAQZnwdR2n4Cl2zn_eWb8XmqfV1y/pub?gid=0&single=true&output=csv';
+
+async function fetchData() {
+  const response = await fetch(CSV_URL);
+  const csvText = await response.text();
+  const rows = csvText.trim().split('\n').map(row =>
+    row.split(',').map(cell => cell.trim().replace(/^"|"$/g, '').replace(/""/g, '"'))
+  );
+  return rows;
+}
+
+function parseRows(rows) {
+  const headers = rows.shift();
+  const col = (name) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+  const idx = {
+    pill: col("píldora"),
+    tipo: col("tipo"),
+    depto: col("departamento"),
+    url: col("url"),
+    fecha: col("fecha")
+  };
+
+  const map = new Map();
+  const omitted = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const pill = parseInt(r[idx.pill]);
+    const tipo = r[idx.tipo];
+    const depto = r[idx.depto];
+    const url = r[idx.url];
+    const fechaRaw = r[idx.fecha];
+    const errores = [];
+
+    if (isNaN(pill)) errores.push('Píldora inválida');
+    if (!tipo) errores.push('Tipo vacío');
+    if (!depto) errores.push('Departamento vacío');
+    if (!/^https?:\/\/\S+/.test(url)) errores.push('URL inválida');
+    const fecha = new Date(fechaRaw);
+    if (!(fecha instanceof Date) || isNaN(fecha)) errores.push('Fecha inválida');
+
+    if (errores.length > 0) {
+      omitted.push(`Fila ${i + 2}: ${errores.join(', ')}`);
+      continue;
+    }
+
+    const nuevo = { pill, tipo, depto, url, fecha };
+    if (map.has(url)) {
+      if (fecha > map.get(url).fecha) {
+        omitted.push(`URL duplicada. Se sustituye por la versión más nueva (píldora ${pill}).`);
+        map.set(url, nuevo);
+      } else {
+        omitted.push(`URL duplicada. Se omite la versión antigua (píldora ${pill}).`);
+      }
+    } else {
+      map.set(url, nuevo);
+    }
+  }
+
+  return [Array.from(map.values()), omitted];
+}
+
+function renderFilters(items) {
+  const tipos = [...new Set(items.map(r => r.tipo))].sort();
+  const deptos = [...new Set(items.map(r => r.depto))].sort();
+  document.getElementById('filterTipo').innerHTML = `<option value="">Todos</option>` + tipos.map(t => `<option>${t}</option>`).join('');
+  document.getElementById('filterDepto').innerHTML = `<option value="">Todos</option>` + deptos.map(d => `<option>${d}</option>`).join('');
+}
+
+function renderCards(items) {
+  const grid = document.getElementById('cardsGrid');
+  grid.innerHTML = '';
+  items.forEach(r => {
+    const f = r.fecha.toLocaleDateString('es-ES');
+    grid.innerHTML += `
+      <div class="bg-blue-50 p-4 rounded shadow flex flex-col justify-between">
+        <div>
+          <h4 class="text-lg font-semibold text-blue-800">Píldora Nº ${r.pill}</h4>
+          <p><strong>Tipo:</strong> ${r.tipo}</p>
+          <p><strong>Departamento:</strong> ${r.depto}</p>
+          <p><strong>Publicado:</strong> ${f}</p>
+        </div>
+        <a href="${r.url}" target="_blank" class="mt-4 text-blue-600 hover:underline">Ver recurso</a>
+      </div>`;
+  });
+}
+
+function applyFilters(data) {
+  const t = document.getElementById('filterTipo').value;
+  const d = document.getElementById('filterDepto').value;
+  const s = document.getElementById('filterSearch').value.toLowerCase().trim();
+  return data.filter(r => {
+    if (t && r.tipo !== t) return false;
+    if (d && r.depto !== d) return false;
+    if (!s) return true;
+    return r.pill.toString().includes(s) || r.tipo.toLowerCase().includes(s) || r.depto.toLowerCase().includes(s);
+  });
+}
+
+(async () => {
+  try {
+    const raw = await fetchData();
+    const [validos, omitidos] = parseRows(raw);
+    renderFilters(validos);
+    document.getElementById('spinner').classList.add('hidden');
+
+    function updateView() {
+      const filtrados = applyFilters(validos);
+      if (filtrados.length === 0) {
+        document.getElementById('noResults').classList.remove('hidden');
+        document.getElementById('cardsGrid').innerHTML = '';
+      } else {
+        document.getElementById('noResults').classList.add('hidden');
+        renderCards(filtrados);
+      }
+    }
+
+    document.getElementById('filterTipo').onchange = updateView;
+    document.getElementById('filterDepto').onchange = updateView;
+    document.getElementById('filterSearch').oninput = updateView;
+    document.getElementById('btnClear').onclick = () => {
+      document.getElementById('filterTipo').value = '';
+      document.getElementById('filterDepto').value = '';
+      document.getElementById('filterSearch').value = '';
+      updateView();
+    };
+
+    updateView();
+
+    if (omitidos.length > 0) {
+      const section = document.getElementById('omittedSection');
+      const list = document.getElementById('omittedList');
+      section.classList.remove('hidden');
+      omitidos.forEach(msg => {
+        const li = document.createElement('li');
+        li.textContent = msg;
+        list.appendChild(li);
+      });
+    }
+
+  } catch (e) {
+    document.getElementById('cardsGrid').innerHTML = `<p class="text-red-600 text-center">Error al cargar los datos: ${e.message}</p>`;
+  }
+})();
+</script>
+</body>
+</html>
