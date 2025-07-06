@@ -44,6 +44,12 @@
 <script>
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQKf_w77is2BLppKdtdxb81nWMDF5saLmicERcfyZYhLP3gJVAhXAQZnwdR2n4Cl2zn_eWb8XmqfV1y/pub?gid=0&single=true&output=csv';
 
+const pastelColors = [
+  'bg-red-100', 'bg-yellow-100', 'bg-green-100', 'bg-blue-100',
+  'bg-indigo-100', 'bg-purple-100', 'bg-pink-100', 'bg-teal-100',
+  'bg-orange-100', 'bg-lime-100', 'bg-cyan-100', 'bg-amber-100'
+];
+
 function parseCSV(text) {
   const rows = [];
   const lines = text.split('\n');
@@ -167,13 +173,32 @@ function renderFilters(items) {
   document.getElementById('filterDepto').innerHTML = `<option value="">Todos</option>` + deptos.map(d => `<option>${d}</option>`).join('');
 }
 
+function generateDepartmentColorMap(items) {
+  const deptos = new Set();
+  items.forEach(r => {
+    r.depto.split(',').forEach(d => deptos.add(d.trim().toLowerCase()));
+  });
+
+  const colorMap = {};
+  Array.from(deptos).forEach((d, i) => {
+    colorMap[d] = pastelColors[i % pastelColors.length];
+  });
+
+  return colorMap;
+}
+
 function renderCards(items) {
   const grid = document.getElementById('cardsGrid');
   grid.innerHTML = '';
+  const deptoColorMap = generateDepartmentColorMap(items);
+
   items.forEach(r => {
     const f = r.fecha.toLocaleDateString('es-ES');
+    const mainDepto = r.depto.split(',')[0].trim().toLowerCase();
+    const bgClass = deptoColorMap[mainDepto] || 'bg-gray-100';
+
     grid.innerHTML += `
-      <div class="bg-blue-50 p-4 rounded shadow flex flex-col justify-between">
+      <div class="${bgClass} p-4 rounded shadow flex flex-col justify-between">
         <div>
           <h4 class="text-lg font-semibold text-blue-800">Píldora Nº ${r.pill}</h4>
           <p class="mb-2 text-sm text-gray-800">${r.info}</p>
