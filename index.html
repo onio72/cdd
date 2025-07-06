@@ -11,6 +11,7 @@
     <header class="text-center mb-6">
       <h1 class="text-4xl font-extrabold text-gray-900">Repositorio de Píldoras CDD</h1>
       <h2 class="text-xl text-gray-600">Colección de recursos educativos para el claustro del IES El Majuelo</h2>
+      <p id="stats" class="text-md text-gray-700 mt-2"></p>
     </header>
 
     <div class="flex flex-wrap gap-4 mb-6 justify-center">
@@ -152,22 +153,12 @@ function renderFilters(items) {
   const deptoSet = new Map();
 
   items.forEach(r => {
-    r.tipo.split(',').forEach(t => {
-      const key = t.trim();
-      if (key && !tipoSet.has(key.toLowerCase())) {
-        tipoSet.set(key.toLowerCase(), key);
-      }
-    });
-    r.depto.split(',').forEach(d => {
-      const key = d.trim();
-      if (key && !deptoSet.has(key.toLowerCase())) {
-        deptoSet.set(key.toLowerCase(), key);
-      }
-    });
+    r.tipo.split(',').forEach(t => tipoSet.set(t.trim().toLowerCase(), t.trim()));
+    r.depto.split(',').forEach(d => deptoSet.set(d.trim().toLowerCase(), d.trim()));
   });
 
-  const tipos = Array.from(tipoSet.values()).sort((a, b) => a.localeCompare(b));
-  const deptos = Array.from(deptoSet.values()).sort((a, b) => a.localeCompare(b));
+  const tipos = Array.from(tipoSet.values()).sort();
+  const deptos = Array.from(deptoSet.values()).sort();
 
   document.getElementById('filterTipo').innerHTML = `<option value="">Todos</option>` + tipos.map(t => `<option>${t}</option>`).join('');
   document.getElementById('filterDepto').innerHTML = `<option value="">Todos</option>` + deptos.map(d => `<option>${d}</option>`).join('');
@@ -175,9 +166,7 @@ function renderFilters(items) {
 
 function generateDepartmentColorMap(items) {
   const deptos = new Set();
-  items.forEach(r => {
-    r.depto.split(',').forEach(d => deptos.add(d.trim().toLowerCase()));
-  });
+  items.forEach(r => r.depto.split(',').forEach(d => deptos.add(d.trim().toLowerCase())));
 
   const colorMap = {};
   Array.from(deptos).forEach((d, i) => {
@@ -237,6 +226,10 @@ function applyFilters(data) {
   try {
     const raw = await fetchData();
     const [validos, omitidos] = parseRows(raw);
+
+    const uniquePills = new Set(validos.map(r => r.pill)).size;
+    document.getElementById('stats').textContent = `${validos.length} recursos válidos - ${uniquePills} píldoras distintas publicadas.`;
+
     renderFilters(validos);
     document.getElementById('spinner').classList.add('hidden');
 
@@ -267,7 +260,7 @@ function applyFilters(data) {
       const section = document.getElementById('omittedSection');
       const list = document.getElementById('omittedList');
       section.classList.remove('hidden');
-      omitted.forEach(msg => {
+      omitidos.forEach(msg => {
         const li = document.createElement('li');
         li.textContent = msg;
         list.appendChild(li);
