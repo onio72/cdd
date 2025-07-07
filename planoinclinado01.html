@@ -2,56 +2,69 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Plano Inclinado con P5.js</title>
+  <title>Triángulo Plano Inclinado - P5.js</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 </head>
 <body>
   <script>
-    let angulo; // ángulo del plano
+    let angulo; // Ángulo en A (entre AC y AB)
     let boton;
+    let AB = 300; // longitud base (horizontal)
+    let BC; // altura (vertical)
+    let A, B, C; // puntos del triángulo
 
     function setup() {
       createCanvas(600, 400);
-      angleMode(DEGREES); // Para usar ángulos en grados
-      generarNuevoAngulo();
+      angleMode(DEGREES);
+      generarNuevoTriangulo();
 
-      // Crear botón
       boton = createButton('Otro ejemplo');
       boton.position(20, 20);
-      boton.mousePressed(generarNuevoAngulo);
+      boton.mousePressed(generarNuevoTriangulo);
     }
 
     function draw() {
       background(255);
-      drawPlano(angulo);
-      drawBloque(angulo);
-
-      fill(0);
-      noStroke();
-      textSize(16);
-      text("Ángulo: " + nf(angulo, 1, 1) + "°", 20, 60);
-    }
-
-    function generarNuevoAngulo() {
-      angulo = random(5, 85); // Evita extremos visuales
-    }
-
-    function drawPlano(a) {
-      push();
-      translate(100, height - 50);
-      rotate(-a);
-      fill(230);
       stroke(0);
-      triangle(0, 0, 400, 0, 0, -100);
-      pop();
+      fill(230);
+
+      // Dibujar triángulo rectángulo ABC
+      triangle(A.x, A.y, B.x, B.y, C.x, C.y);
+
+      // Dibujar bloque en AC (plano inclinado)
+      drawBloqueSobrePlano();
+
+      // Mostrar ángulo
+      noStroke();
+      fill(0);
+      textSize(16);
+      text("Ángulo en A: " + nf(angulo, 1, 1) + "°", 20, 60);
     }
 
-    function drawBloque(a) {
+    function generarNuevoTriangulo() {
+      angulo = random(5, 85); // ángulo entre AB y AC
+
+      // Punto B (ángulo recto): base del triángulo
+      B = createVector(150, height - 50);
+
+      // Punto A: en línea horizontal desde B
+      A = createVector(B.x - AB, B.y);
+
+      // Calcular punto C: subir en vertical desde B una altura determinada por trigonometría
+      BC = tan(angulo) * AB; // altura
+      C = createVector(B.x, B.y - BC);
+    }
+
+    function drawBloqueSobrePlano() {
+      // Posicionar bloque sobre AC
       push();
-      translate(100, height - 50);
-      rotate(-a);
+      translate(A.x, A.y);
+      let dx = C.x - A.x;
+      let dy = C.y - A.y;
+      let theta = atan2(dy, dx);
+      rotate(theta);
       fill(200, 0, 0);
-      rect(50, -40, 60, 40); // bloque rectangular
+      rect(40, -20, 60, 40); // bloque con base 60 y alto 40
       pop();
     }
   </script>
