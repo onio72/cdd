@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Plano Inclinado Centrado</title>
+  <title>Plano Inclinado - Triángulo ABC</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 </head>
 <body>
   <script>
-    let angulo;  // Ángulo en A
-    let AB = 300; // longitud horizontal
-    let B, A, C;
+    let angulo; // Ángulo en A
+    let AB = 300;
+    let A, B, C;
     let boton;
 
     function setup() {
@@ -27,31 +27,39 @@
       stroke(0);
       fill(230);
 
-      // Dibujar triángulo
+      // Triángulo rectángulo ABC
       triangle(A.x, A.y, B.x, B.y, C.x, C.y);
 
-      // Dibujar bloque sobre el plano inclinado AC
+      // Etiquetas
+      dibujarVertices();
+
+      // Bloque sobre el plano inclinado (AC)
       drawBloqueSobrePlano();
 
       // Mostrar ángulo
       noStroke();
       fill(0);
       textSize(16);
-      text("Ángulo en A: " + nf(angulo, 1, 1) + "°", 20, 60);
+      text("Ángulo en A: " + angulo + "°", 20, 60);
     }
 
     function generarNuevoTriangulo() {
-      angulo = random(5, 85); // ángulo en A
+      // Elegir ángulo múltiplo de 5 entre 5 y 85
+      let posiblesAngulos = [];
+      for (let a = 5; a <= 85; a += 5) {
+        posiblesAngulos.push(a);
+      }
+      angulo = random(posiblesAngulos);
 
-      // Punto A: a la derecha del canvas, verticalmente centrado
+      // Punto A (a la derecha, centrado verticalmente)
       A = createVector(width - 100, height / 2);
 
-      // Punto B: a la izquierda de A, mismo nivel
+      // Punto B (a la izquierda de A, misma altura)
       B = createVector(A.x - AB, A.y);
 
-      // Punto C: vertical hacia abajo desde B
+      // Punto C (vertical arriba desde B, según ángulo)
       let altura = tan(angulo) * AB;
-      C = createVector(B.x, B.y + altura);
+      C = createVector(B.x, B.y - altura); // hacia arriba
     }
 
     function drawBloqueSobrePlano() {
@@ -62,8 +70,17 @@
       let theta = atan2(dy, dx);
       rotate(theta);
       fill(200, 0, 0);
-      rect(40, -20, 60, 40); // bloque encima del plano
+      rect(40, -20, 60, 40);
       pop();
+    }
+
+    function dibujarVertices() {
+      fill(0);
+      textSize(14);
+      noStroke();
+      text('A', A.x + 5, A.y - 5);
+      text('B', B.x - 15, B.y - 5);
+      text('C', C.x - 10, C.y + 15);
     }
   </script>
 </body>
