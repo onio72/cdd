@@ -124,32 +124,35 @@
       let minL = 0.10 * AB;
       let maxL = 0.20 * AB;
       let largo = map(masa, 1, 10, minL, maxL);
-      let alto = largo; // DE = DG
+      let area = masa * 100;
+      let alto = area / largo; // altura vertical
 
       let ux = dx / lenAC;
       let uy = dy / lenAC;
-      let px = -uy;
-      let py = ux;
 
       let mx = (A.x + C.x) / 2;
       let my = (A.y + C.y) / 2;
 
+      // D y E: base sobre AC, centrada
       let Dx = mx - (largo / 2) * ux;
       let Dy = my - (largo / 2) * uy;
       let Ex = mx + (largo / 2) * ux;
       let Ey = my + (largo / 2) * uy;
-      let Fx = Ex + alto * px;
-      let Fy = Ey + alto * py;
-      let Gx = Dx + alto * px;
-      let Gy = Dy + alto * py;
 
-      fill(200, 0, 0);
+      // G y F: subir verticalmente desde D y E
+      let Gx = Dx;
+      let Gy = Dy - alto;
+      let Fx = Ex;
+      let Fy = Ey - alto;
+
+      // Dibujar bloque en orden antihorario: D, E, F, G
+      fill(255, 102, 0);
       stroke(0);
       beginShape();
       vertex(Dx, Dy); // D
-      vertex(Gx, Gy); // G
-      vertex(Fx, Fy); // F
       vertex(Ex, Ey); // E
+      vertex(Fx, Fy); // F
+      vertex(Gx, Gy); // G
       endShape(CLOSE);
 
       bloque = {
