@@ -2,16 +2,15 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Triángulo Plano Inclinado - P5.js</title>
+  <title>Plano Inclinado Centrado</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 </head>
 <body>
   <script>
-    let angulo; // Ángulo en A (entre AC y AB)
+    let angulo;  // Ángulo en A
+    let AB = 300; // longitud horizontal
+    let B, A, C;
     let boton;
-    let AB = 300; // longitud base (horizontal)
-    let BC; // altura (vertical)
-    let A, B, C; // puntos del triángulo
 
     function setup() {
       createCanvas(600, 400);
@@ -28,10 +27,10 @@
       stroke(0);
       fill(230);
 
-      // Dibujar triángulo rectángulo ABC
+      // Dibujar triángulo
       triangle(A.x, A.y, B.x, B.y, C.x, C.y);
 
-      // Dibujar bloque en AC (plano inclinado)
+      // Dibujar bloque sobre el plano inclinado AC
       drawBloqueSobrePlano();
 
       // Mostrar ángulo
@@ -42,21 +41,20 @@
     }
 
     function generarNuevoTriangulo() {
-      angulo = random(5, 85); // ángulo entre AB y AC
+      angulo = random(5, 85); // ángulo en A
 
-      // Punto B (ángulo recto): base del triángulo
-      B = createVector(150, height - 50);
+      // Punto A: a la derecha del canvas, verticalmente centrado
+      A = createVector(width - 100, height / 2);
 
-      // Punto A: en línea horizontal desde B
-      A = createVector(B.x - AB, B.y);
+      // Punto B: a la izquierda de A, mismo nivel
+      B = createVector(A.x - AB, A.y);
 
-      // Calcular punto C: subir en vertical desde B una altura determinada por trigonometría
-      BC = tan(angulo) * AB; // altura
-      C = createVector(B.x, B.y - BC);
+      // Punto C: vertical hacia abajo desde B
+      let altura = tan(angulo) * AB;
+      C = createVector(B.x, B.y + altura);
     }
 
     function drawBloqueSobrePlano() {
-      // Posicionar bloque sobre AC
       push();
       translate(A.x, A.y);
       let dx = C.x - A.x;
@@ -64,7 +62,7 @@
       let theta = atan2(dy, dx);
       rotate(theta);
       fill(200, 0, 0);
-      rect(40, -20, 60, 40); // bloque con base 60 y alto 40
+      rect(40, -20, 60, 40); // bloque encima del plano
       pop();
     }
   </script>
