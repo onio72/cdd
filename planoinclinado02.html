@@ -172,23 +172,23 @@
         text("G", bloque.G.x - 8, bloque.G.y - 5);
       }
     }
-
-    function dibujarArcoEnA() {
-  // Vectores desde A
+function dibujarArcoEnA() {
   let vAB = createVector(B.x - A.x, B.y - A.y);
   let vAC = createVector(C.x - A.x, C.y - A.y);
 
-  // Ángulos absolutos respecto al eje X
   let angAB = atan2(vAB.y, vAB.x);
   let angAC = atan2(vAC.y, vAC.x);
 
-  // Normalizar para que el arco se dibuje siempre en sentido antihorario
+  // Calcular la diferencia en sentido antihorario
+  let diff = (angAC - angAB + TWO_PI) % TWO_PI;
+
   let start = angAB;
   let stop = angAC;
 
-  // Ajustar si se dibuja en sentido horario
-  if (stop < start) {
-    stop += TWO_PI;
+  // Si el recorrido es mayor de 180°, invertimos para tomar el ángulo interior
+  if (diff > PI) {
+    start = angAC;
+    stop = angAB + TWO_PI;
   }
 
   push();
