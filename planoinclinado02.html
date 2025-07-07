@@ -48,12 +48,12 @@
 
     function setup() {
       createCanvas(600, 550).parent(document.body);
-      angleMode(DEGREES);
+      angleMode(RADIANS);
       textAlign(CENTER, CENTER);
 
       const controles = select('#controles');
 
-      createSpan('Ángulo en A (°)').addClass('slider-label').parent(controles);
+      createSpan('Inclinación (°)').addClass('slider-label').parent(controles);
       sliderAngulo = createSlider(0, 60, angulo, 5);
       sliderAngulo.parent(controles);
 
@@ -67,22 +67,21 @@
     function draw() {
       background(255);
       stroke(0);
-      fill(230);
+      fill(220);
 
-      angulo = sliderAngulo.value();
+      angulo = sliderAngulo.value() * PI / 180;
       masa = sliderMasa.value();
 
       actualizarTriangulo();
 
       triangle(A.x, A.y, B.x, B.y, C.x, C.y);
 
-      dibujarVertices();
       drawBloqueCuadrado();
 
       noStroke();
       fill(0);
       textSize(16);
-      text("Ángulo en A: " + angulo + "°", width / 2, 70);
+      text("Inclinación: " + degrees(angulo).toFixed(0) + "°", width / 2, 70);
       text("Masa del bloque: " + masa + " kg", width / 2, 95);
 
       dibujarArcoEnA();
@@ -120,6 +119,7 @@
       let dx = C.x - A.x;
       let dy = C.y - A.y;
       let lenAC = dist(A.x, A.y, C.x, C.y);
+
       let ux = dx / lenAC;
       let uy = dy / lenAC;
       let px = -uy;
@@ -143,10 +143,10 @@
       fill(255, 102, 0);
       stroke(0);
       beginShape();
-      vertex(Dx, Dy); // D
-      vertex(Ex, Ey); // E
-      vertex(Fx, Fy); // F
-      vertex(Gx, Gy); // G
+      vertex(Dx, Dy);
+      vertex(Ex, Ey);
+      vertex(Fx, Fy);
+      vertex(Gx, Gy);
       endShape(CLOSE);
 
       bloque = {
@@ -157,51 +157,30 @@
       };
     }
 
-    function dibujarVertices() {
-      fill(0);
-      textSize(14);
-      noStroke();
-      text("A", A.x - 12, A.y - 8);
-      text("B", B.x + 12, B.y - 8);
-      text("C", C.x - 10, C.y - 10);
+    function dibujarArcoEnA() {
+      let vAB = createVector(B.x - A.x, B.y - A.y);
+      let vAC = createVector(C.x - A.x, C.y - A.y);
 
-      if (bloque) {
-        text("D", bloque.D.x - 8, bloque.D.y - 5);
-        text("E", bloque.E.x + 8, bloque.E.y - 5);
-        text("F", bloque.F.x + 8, bloque.F.y - 5);
-        text("G", bloque.G.x - 8, bloque.G.y - 5);
+      let angAB = atan2(vAB.y, vAB.x);
+      let angAC = atan2(vAC.y, vAC.x);
+
+      let diff = (angAC - angAB + TWO_PI) % TWO_PI;
+      let start = angAB;
+      let stop = angAC;
+
+      if (diff > PI) {
+        start = angAC;
+        stop = angAB + TWO_PI;
       }
+
+      push();
+      translate(A.x, A.y);
+      noFill();
+      stroke(0);
+      strokeWeight(1);
+      arc(0, 0, 40, 40, start, stop);
+      pop();
     }
-function dibujarArcoEnA() {
-  let vAB = createVector(B.x - A.x, B.y - A.y);
-  let vAC = createVector(C.x - A.x, C.y - A.y);
-
-  let angAB = atan2(vAB.y, vAB.x);
-  let angAC = atan2(vAC.y, vAC.x);
-
-  // Calcular la diferencia en sentido antihorario
-  let diff = (angAC - angAB + TWO_PI) % TWO_PI;
-
-  let start = angAB;
-  let stop = angAC;
-
-  // Si el recorrido es mayor de 180°, invertimos para tomar el ángulo interior
-  if (diff > PI) {
-    start = angAC;
-    stop = angAB + TWO_PI;
-  }
-
-  push();
-  translate(A.x, A.y);
-  noFill();
-  stroke(0);
-  strokeWeight(1);
-  arc(0, 0, 40, 40, start, stop);
-  pop();
-}
-
   </script>
 </body>
 </html>
-
-
