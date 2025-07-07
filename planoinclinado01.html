@@ -27,13 +27,13 @@
       stroke(0);
       fill(230);
 
-      // Triángulo rectángulo ABC
+      // Triángulo ABC
       triangle(A.x, A.y, B.x, B.y, C.x, C.y);
 
-      // Etiquetas
+      // Etiquetas A, B, C
       dibujarVertices();
 
-      // Bloque sobre el plano inclinado (AC)
+      // Bloque sobre AC
       drawBloqueSobrePlano();
 
       // Mostrar ángulo
@@ -51,15 +51,15 @@
       }
       angulo = random(posiblesAngulos);
 
-      // Punto A (a la derecha, centrado verticalmente)
-      A = createVector(width - 100, height / 2);
+      // Punto A (a la izquierda, centrado verticalmente)
+      A = createVector(100, height / 2);
 
-      // Punto B (a la izquierda de A, misma altura)
-      B = createVector(A.x - AB, A.y);
+      // Punto B (a la derecha de A, misma altura)
+      B = createVector(A.x + AB, A.y);
 
       // Punto C (vertical arriba desde B, según ángulo)
       let altura = tan(angulo) * AB;
-      C = createVector(B.x, B.y - altura); // hacia arriba
+      C = createVector(B.x, B.y - altura);
     }
 
     function drawBloqueSobrePlano() {
@@ -78,9 +78,9 @@
       fill(0);
       textSize(14);
       noStroke();
-      text('A', A.x + 5, A.y - 5);
-      text('B', B.x - 15, B.y - 5);
-      text('C', C.x - 10, C.y + 15);
+      text('A', A.x - 10, A.y - 5);
+      text('B', B.x + 5, B.y - 5);
+      text('C', C.x - 10, C.y - 10);
     }
   </script>
 </body>
