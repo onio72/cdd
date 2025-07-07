@@ -20,22 +20,22 @@
       font-size: 18px;
       color: #555;
     }
-    #boton-container {
-      margin-top: 10px;
-    }
     #controles {
-      margin-top: 10px;
+      margin-top: 20px;
     }
     .slider-label {
-      display: inline-block;
-      margin: 10px 10px 0 10px;
+      display: block;
+      margin: 10px 0 5px 0;
+      font-weight: bold;
+    }
+    input[type=range] {
+      width: 300px;
     }
   </style>
 </head>
 <body>
   <h1>Física y Química 1º de Bachillerato</h1>
   <h2>Plano inclinado</h2>
-  <div id="boton-container"></div>
   <div id="controles"></div>
 
   <script>
@@ -51,22 +51,15 @@
       angleMode(DEGREES);
       textAlign(CENTER, CENTER);
 
-      // Botón
-      let boton = createButton("Otro ejemplo");
-      boton.parent("boton-container");
-      boton.mousePressed(() => {
-        generarTriangulo();
-      });
-
-      // Controles
       const controles = select('#controles');
-      sliderAngulo = createSlider(5, 85, angulo, 5);
-      sliderAngulo.parent(controles);
-      createSpan(' Ángulo en A (°) ').addClass('slider-label').parent(controles);
 
+      createSpan('Ángulo en A (°)').addClass('slider-label').parent(controles);
+      sliderAngulo = createSlider(0, 60, angulo, 5);
+      sliderAngulo.parent(controles);
+
+      createSpan('Masa del bloque (kg)').addClass('slider-label').parent(controles);
       sliderMasa = createSlider(1, 10, masa, 1);
       sliderMasa.parent(controles);
-      createSpan(' Masa (kg) ').addClass('slider-label').parent(controles);
 
       generarTriangulo();
     }
@@ -81,13 +74,11 @@
 
       actualizarTriangulo();
 
-      // Triángulo ABC
       triangle(A.x, A.y, B.x, B.y, C.x, C.y);
 
       dibujarVertices();
       drawBloqueSobrePlano();
 
-      // Datos visibles
       noStroke();
       fill(0);
       textSize(16);
@@ -133,7 +124,7 @@
       let minL = 0.10 * AB;
       let maxL = 0.20 * AB;
       let largo = map(masa, 1, 10, minL, maxL);
-      let alto = largo; // ahora: altura = largo → DG = DE
+      let alto = largo; // DE = DG
 
       let ux = dx / lenAC;
       let uy = dy / lenAC;
@@ -147,18 +138,18 @@
       let Dy = my - (largo / 2) * uy;
       let Ex = mx + (largo / 2) * ux;
       let Ey = my + (largo / 2) * uy;
-      let Gx = Dx + alto * px;
-      let Gy = Dy + alto * py;
       let Fx = Ex + alto * px;
       let Fy = Ey + alto * py;
+      let Gx = Dx + alto * px;
+      let Gy = Dy + alto * py;
 
       fill(200, 0, 0);
       stroke(0);
       beginShape();
       vertex(Dx, Dy); // D
-      vertex(Ex, Ey); // E
-      vertex(Fx, Fy); // F
       vertex(Gx, Gy); // G
+      vertex(Fx, Fy); // F
+      vertex(Ex, Ey); // E
       endShape(CLOSE);
 
       bloque = {
