@@ -51,20 +51,19 @@
       angleMode(DEGREES);
       textAlign(CENTER, CENTER);
 
-      // Botón centrado
+      // Botón
       let boton = createButton("Otro ejemplo");
       boton.parent("boton-container");
       boton.mousePressed(() => {
         generarTriangulo();
       });
 
-      // Deslizador ángulo
+      // Controles
       const controles = select('#controles');
       sliderAngulo = createSlider(5, 85, angulo, 5);
       sliderAngulo.parent(controles);
       createSpan(' Ángulo en A (°) ').addClass('slider-label').parent(controles);
 
-      // Deslizador masa
       sliderMasa = createSlider(1, 10, masa, 1);
       sliderMasa.parent(controles);
       createSpan(' Masa (kg) ').addClass('slider-label').parent(controles);
@@ -82,12 +81,13 @@
 
       actualizarTriangulo();
 
+      // Triángulo ABC
       triangle(A.x, A.y, B.x, B.y, C.x, C.y);
 
       dibujarVertices();
       drawBloqueSobrePlano();
 
-      // Mostrar valores
+      // Datos visibles
       noStroke();
       fill(0);
       textSize(16);
@@ -98,7 +98,6 @@
     }
 
     function generarTriangulo() {
-      // Posicionar A y B centrados horizontalmente
       let centroX = width / 2;
       A = createVector(centroX - AB / 2, height / 2);
       B = createVector(A.x + AB, A.y);
@@ -106,7 +105,6 @@
     }
 
     function actualizarTriangulo() {
-      // Recalcula C y corrige si se sale del canvas
       let altura = tan(angulo) * AB;
       C = createVector(B.x, B.y - altura);
 
@@ -130,25 +128,18 @@
     function drawBloqueSobrePlano() {
       let dx = C.x - A.x;
       let dy = C.y - A.y;
-      let theta = atan2(dy, dx);
       let lenAC = dist(A.x, A.y, C.x, C.y);
 
-      // Largo de DE (entre 10% y 20% de AB)
       let minL = 0.10 * AB;
       let maxL = 0.20 * AB;
       let largo = map(masa, 1, 10, minL, maxL);
+      let alto = largo; // ahora: altura = largo → DG = DE
 
-      // Área proporcional a masa
-      let areaDeseada = masa * 100; // escala arbitraria
-      let alto = areaDeseada / largo;
-
-      // Vectores
       let ux = dx / lenAC;
       let uy = dy / lenAC;
       let px = -uy;
       let py = ux;
 
-      // Punto medio de AC
       let mx = (A.x + C.x) / 2;
       let my = (A.y + C.y) / 2;
 
@@ -156,19 +147,18 @@
       let Dy = my - (largo / 2) * uy;
       let Ex = mx + (largo / 2) * ux;
       let Ey = my + (largo / 2) * uy;
-      let Fx = Ex + alto * px;
-      let Fy = Ey + alto * py;
       let Gx = Dx + alto * px;
       let Gy = Dy + alto * py;
+      let Fx = Ex + alto * px;
+      let Fy = Ey + alto * py;
 
-      // Dibujo del bloque
       fill(200, 0, 0);
       stroke(0);
       beginShape();
-      vertex(Dx, Dy);
-      vertex(Ex, Ey);
-      vertex(Fx, Fy);
-      vertex(Gx, Gy);
+      vertex(Dx, Dy); // D
+      vertex(Ex, Ey); // E
+      vertex(Fx, Fy); // F
+      vertex(Gx, Gy); // G
       endShape(CLOSE);
 
       bloque = {
