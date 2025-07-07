@@ -174,25 +174,32 @@
     }
 
     function dibujarArcoEnA() {
-      // Calculamos vectores desde A hacia B y C
-      let vAB = createVector(B.x - A.x, B.y - A.y).normalize();
-      let vAC = createVector(C.x - A.x, C.y - A.y).normalize();
+  // Vectores desde A
+  let vAB = createVector(B.x - A.x, B.y - A.y);
+  let vAC = createVector(C.x - A.x, C.y - A.y);
 
-      // Ángulo entre los vectores (en radianes)
-      let anguloRad = acos(vAB.dot(vAC));
+  // Ángulos absolutos respecto al eje X
+  let angAB = atan2(vAB.y, vAB.x);
+  let angAC = atan2(vAC.y, vAC.x);
 
-      // Dirección inicial del arco (ángulo de AB respecto a horizontal)
-      let inicio = atan2(vAB.y, vAB.x);
+  // Normalizar para que el arco se dibuje siempre en sentido antihorario
+  let start = angAB;
+  let stop = angAC;
 
-      push();
-      translate(A.x, A.y);
-      rotate(inicio);
-      noFill();
-      stroke(0);
-      strokeWeight(1);
-      arc(0, 0, 50, 50, 0, anguloRad);
-      pop();
-    }
+  // Ajustar si se dibuja en sentido horario
+  if (stop < start) {
+    stop += TWO_PI;
+  }
+
+  push();
+  translate(A.x, A.y);
+  noFill();
+  stroke(0);
+  strokeWeight(1);
+  arc(0, 0, 40, 40, start, stop);
+  pop();
+}
+
   </script>
 </body>
 </html>
